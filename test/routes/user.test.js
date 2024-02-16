@@ -2,6 +2,7 @@ const request = require('supertest');
 
 const app = require('../../src/app');
 
+const mail = `${Date.now()}@mail.com`
 test("Deve listar todos os usuarios", () => {
 	return request(app).get('/users')
 		.then((res) => {
@@ -11,7 +12,6 @@ test("Deve listar todos os usuarios", () => {
 })
 
 test('deve inserir usuario com sucesso', () => {
-	const mail = `${Date.now()}@mail.com`
 	return request(app).post('/users')
 		.send({ name: 'Walter Mitty', mail, password: '123123' })
 		.then((res) => {
@@ -21,7 +21,6 @@ test('deve inserir usuario com sucesso', () => {
 })
 
 test('Nao deve inserir usuario sem nome', () => {
-	const mail = `${Date.now()}@mail.com`
 	return request(app).post('/users')
 		.send({ mail, password: '123123' })
 		.then((res) => {
@@ -39,12 +38,20 @@ test('Nao deve inserir usuario sem email', async () => {
 })
 
 test("Nao deve inserir usuario sem senha", (done) => {
-	const mail = `${Date.now()}@mail.com`
 	request(app).post('/users')
 		.send({ name: 'Walter Mitty', mail })
 		.then((res) => {
 			expect(res.status).toBe(400);
 			expect(res.body.error).toBe('Senha é um atributo obrigatorio')
 			done();
+		})
+})
+
+test('Nao deve inserir usuario com email existente', () => {
+	return request(app).post('/users')
+		.send({ name: 'Walter Mitty', mail, password: "123123" })
+		.then((res) => {
+			expect(res.status).toBe(400);
+			expect(res.body.error).toBe('Ja existe um usuario com esse email')
 		})
 })

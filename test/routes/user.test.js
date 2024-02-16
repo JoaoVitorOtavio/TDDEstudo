@@ -19,3 +19,13 @@ test('deve inserir usuario com sucesso', () => {
             expect(res.body.name).toBe('Walter Mitty')
         })
 })
+
+test('Nao deve inserir usuario sem nome', () => {
+    const mail = `${Date.now()}@mail.com`
+    return request(app).post('/users')
+        .send({ mail, password: '123123' })
+        .then((res) => {
+            expect(res.status).toBe(400);
+            expect(res.body.error).toBe('Nome é um atributo obrigatorio')
+        })
+})

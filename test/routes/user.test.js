@@ -47,7 +47,7 @@ test("Nao deve inserir usuario sem senha", (done) => {
 		})
 })
 
-test('Nao deve inserir usuario com email existente', () => {
+test('Nao deve inserir usuario com email existente', async () => {
 	return request(app).post('/users')
 		.send({ name: 'Walter Mitty', mail, password: "123123" })
 		.then((res) => {

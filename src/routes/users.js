@@ -11,7 +11,6 @@ module.exports = (app) => {
 
         if (result.error) return res.status(400).json(result)
 
-        console.log('result AQUI', result)
         return res.status(201).json(result[0])
     };
 

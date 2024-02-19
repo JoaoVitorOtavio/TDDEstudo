@@ -2,22 +2,31 @@ const app = require('express')();
 const consign = require('consign');
 const knex = require('knex');
 const knexFile = require('../knexfile');
-const knexLogger = require('knex-logger')
+
 
 // TODO: criar chaveamento dinamico
 app.db = knex(knexFile.test);
 
-app.use(knexLogger(app.db))
-
 consign({ cwd: 'src', verbose: false })
-    .include('./config/middlewares.js')
-    .then('./services')
-    .then('./routes')
-    .then('./config/routes.js')
-    .into(app);
+	.include('./config/middlewares.js')
+	.then('./services')
+	.then('./routes')
+	.then('./config/routes.js')
+	.into(app);
 
 app.get('/', (req, res) => {
-    res.status(200).send();
+	res.status(200).send();
 });
+
+app.use((err, req, res, next) => {
+	const { name, message, stack } = err;
+
+	if (name === 'ValidationError') res.status(400).json({
+		error: message
+	})
+	else res.status(500).json({ name, message, stack })
+
+	next(err);
+})
 
 module.exports = app;

@@ -3,7 +3,7 @@ const request = require('supertest');
 const app = require('../../src/app');
 
 const mail = `${Date.now()}@mail.com`
-test("Deve listar todos os usuarios", () => {
+test("Deve listar todos os usuarios", async () => {
 	return request(app).get('/users')
 		.then((res) => {
 			expect(res.status).toBe(200);
@@ -11,7 +11,7 @@ test("Deve listar todos os usuarios", () => {
 		});
 })
 
-test('deve inserir usuario com sucesso', () => {
+test('deve inserir usuario com sucesso', async () => {
 	return request(app).post('/users')
 		.send({ name: 'Walter Mitty', mail, password: '123123' })
 		.then((res) => {
@@ -33,7 +33,7 @@ test('Deve armazenar senha criptografada', async () => {
 	expect(userDb.password).not.toBe('123123');
 })
 
-test('Nao deve inserir usuario sem nome', () => {
+test('Nao deve inserir usuario sem nome', async () => {
 	return request(app).post('/users')
 		.send({ mail, password: '123123' })
 		.then((res) => {

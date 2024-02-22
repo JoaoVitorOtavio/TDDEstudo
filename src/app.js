@@ -8,6 +8,7 @@ const knexFile = require('../knexfile');
 app.db = knex(knexFile.test);
 
 consign({ cwd: 'src', verbose: false })
+	.include('./config/passport.js')
 	.include('./config/middlewares.js')
 	.then('./services')
 	.then('./routes')

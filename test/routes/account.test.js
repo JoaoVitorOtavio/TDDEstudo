@@ -87,6 +87,18 @@ test('Deve retornar uma conta por id', () => {
       }))
 })
 
+test('Nao deve retornar uma conta de outro usuario', () => {
+  return app.db('accounts')
+    .insert({ name: 'Acc User #2', user_id: user2.id }, ['id'])
+    .then((acc) => request(app).get(`${MAIN_ROUTE}/${acc[0].id}`)
+      .set('authorization', `bearer ${user.token}`)
+      .then((res) => {
+        expect(res.status).toBe(403);
+        expect(res.body.error).toBe("Este recurso nao pertence ao usuario")
+      })
+    )
+})
+
 test('Deve alterar uma conta', () => {
   return app.db('accounts')
     .insert({ name: 'Acc To Update', user_id: user.id }, ['id'])

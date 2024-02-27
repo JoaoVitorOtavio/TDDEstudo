@@ -63,6 +63,18 @@ test("Deve listar apenas as contas do usuario", () => {
   )
 })
 
+test('Nao deve inserir uma conta de nome duplicado, para o mesmo usuario', () => {
+  return app.db('accounts').insert({ name: 'Acc duplicada', user_id: user.id })
+    .then(() => request(app).post(MAIN_ROUTE)
+      .set('authorization', `bearer ${user.token}`)
+      .send({ name: 'Acc duplicada' })
+      .then((res) => {
+        expect(res.status).toBe(400)
+        expect(res.body.error).toBe('Ja existe uma conta com esse nome')
+      })
+    )
+})
+
 test('Deve retornar uma conta por id', () => {
   return app.db('accounts')
     .insert({ name: 'Acc By Id', user_id: user.id }, ['id'])

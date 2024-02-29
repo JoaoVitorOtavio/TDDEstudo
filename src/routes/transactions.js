@@ -27,5 +27,11 @@ module.exports = (app) => {
       .catch(err => next(err))
   })
 
+  router.delete('/:id', (req, res, next) => {
+    app.services.transaction.remove(req.params.id)
+      .then(result => res.status(204).json(result))
+      .catch(err => next(err))
+  })
+
   return router;
 }

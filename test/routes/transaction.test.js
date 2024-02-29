@@ -80,3 +80,13 @@ test('Deve alterar uma transaction com sucesso', () => {
       })
     )
 })
+
+test('Deve remover uma transacao', () => {
+  return app.db('transactions').insert({ description: 'New T to remove', date: new Date(), ammount: 150, type: 'I', acc_id: accUser.id }, ['id'])
+    .then(transac => request(app).delete(`${MAIN_ROUTE}/${transac[0].id}`)
+      .set('authorization', `bearer ${user.token}`)
+      .then((res) => {
+        expect(res.status).toBe(204)
+      })
+    )
+})

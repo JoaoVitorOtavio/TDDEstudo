@@ -90,3 +90,14 @@ test('Deve remover uma transacao', () => {
       })
     )
 })
+test('Nao deve alterar uma transacao de outro usuario', () => {
+  return app.db('transactions').insert({ description: 'New Transactions', date: new Date(), ammount: 150, type: 'I', acc_id: accUser2.id }, ['id'])
+    .then(transac => request(app).delete(`${MAIN_ROUTE}/${transac[0].id}`)
+      .set('authorization', `bearer ${user.token}`)
+      .then((res) => {
+        expect(res.status).toBe(403)
+        expect(res.body.error).toBe("Este recurso nao pertence ao usuario")
+      })
+    )
+})
+

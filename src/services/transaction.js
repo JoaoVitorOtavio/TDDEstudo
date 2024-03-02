@@ -1,3 +1,5 @@
+const ValidationError = require('../errors/ValidationError')
+
 module.exports = (app) => {
   const find = (userId, filter = {}) => {
     return app.db("transactions")
@@ -14,6 +16,24 @@ module.exports = (app) => {
   }
 
   const save = (transaction) => {
+    const requiredFields = [
+      { field: 'description', message: 'Descricao é um atributo obrigatório' },
+      { field: 'ammount', message: 'Ammount é um atributo obrigatório' },
+      { field: 'date', message: 'Data é um atributo obrigatório' },
+      { field: 'acc_id', message: 'Account é um atributo obrigatório' },
+      { field: 'type', message: 'Tipo é um atributo obrigatório' },
+    ];
+
+    for (const { field, message } of requiredFields) {
+      if (!transaction[field]) {
+        throw new ValidationError(message);
+      }
+    }
+
+    if (transaction.type !== 'I' && transaction.type !== 'O') {
+      throw new ValidationError('Tipo invalido')
+    }
+
     const newTransaction = { ...transaction }
 
     if ((transaction.type === 'I' && transaction.ammount < 0) || (transaction.type === 'O' && transaction.ammount > 0)) {

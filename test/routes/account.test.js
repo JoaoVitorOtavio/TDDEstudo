@@ -6,7 +6,7 @@ const MAIN_ROUTE = '/v1/accounts';
 let user;
 let user2;
 
-beforeEach(async () => {
+beforeAll(async () => {
   const res = await app.services.user.save({
     name: 'User Account',
     mail: `${Date.now()}@mail.com`,
@@ -46,7 +46,10 @@ test('Nao deve inserir uma conta sem nome', () => {
     })
 })
 
-test("Deve listar apenas as contas do usuario", () => {
+test("Deve listar apenas as contas do usuario", async () => {
+  await app.db('transactions').del();
+  await app.db('accounts').del();
+
   return app.db('accounts').insert([{
     name: 'User Account', user_id: user.id
   },

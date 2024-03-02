@@ -34,7 +34,7 @@ beforeAll(async () => {
   [accUser, accUser2] = accs;
 });
 
-test('Deve listar apenas as transacoes do usuario', () => {
+test('Deve listar apenas as transacoes do usuario', async () => {
   return app.db('transactions').insert([
     { description: 'T1', date: new Date(), ammount: 100, type: 'I', acc_id: accUser.id },
     { description: 'T2', date: new Date(), ammount: 300, type: 'O', acc_id: accUser2.id },
@@ -48,7 +48,7 @@ test('Deve listar apenas as transacoes do usuario', () => {
   )
 })
 
-test("Deve inserir uma transacao com sucesso", () => {
+test("Deve inserir uma transacao com sucesso", async () => {
   return request(app).post(MAIN_ROUTE)
     .set('authorization', `bearer ${user.token}`)
     .send({ description: 'New T', date: new Date(), ammount: 100, type: 'I', acc_id: accUser.id })
@@ -59,7 +59,7 @@ test("Deve inserir uma transacao com sucesso", () => {
     })
 })
 
-test("Transacoes de entrada devem ser positivas", () => {
+test("Transacoes de entrada devem ser positivas", async () => {
   return request(app).post(MAIN_ROUTE)
     .set('authorization', `bearer ${user.token}`)
     .send({ description: 'New T', date: new Date(), ammount: -100, type: 'I', acc_id: accUser.id })
@@ -70,7 +70,7 @@ test("Transacoes de entrada devem ser positivas", () => {
     })
 })
 
-test("Transacoes de saida devem ser negativas", () => {
+test("Transacoes de saida devem ser negativas", async () => {
   return request(app).post(MAIN_ROUTE)
     .set('authorization', `bearer ${user.token}`)
     .send({ description: 'New T', date: new Date(), ammount: 100, type: 'O', acc_id: accUser.id })
@@ -81,7 +81,48 @@ test("Transacoes de saida devem ser negativas", () => {
     })
 })
 
-test("Deve retornar uma transacao por ID", () => {
+describe('Ao tentar inserir uma transacao invalida', () => {
+  let validTransaction;
+
+  beforeAll(() => {
+    validTransaction = { description: 'New T', date: new Date(), ammount: 100, type: 'O', acc_id: accUser.id };
+  })
+
+  const transactionReqTemplate = async (newData, errorMessage) => {
+    return request(app).post(MAIN_ROUTE)
+      .set('authorization', `bearer ${user.token}`)
+      .send({ ...validTransaction, ...newData })
+      .then((res) => {
+        expect(res.status).toBe(400)
+        expect(res.body.error).toBe(errorMessage)
+      })
+  }
+
+  test('Nao deve inserir uma transacao sem descricao', async () => {
+    transactionReqTemplate({ description: null }, 'Descricao é um atributo obrigatório')
+  })
+
+  test('Nao deve inserir uma transacao sem valor', async () => {
+    transactionReqTemplate({ ammount: null }, 'Ammount é um atributo obrigatório')
+  })
+
+  test('Nao deve inserir uma transacao sem data', async () => {
+    transactionReqTemplate({ date: null }, 'Data é um atributo obrigatório')
+  })
+
+  test('Nao deve inserir uma transacao sem conta', async () => {
+    transactionReqTemplate({ acc_id: null }, 'Account é um atributo obrigatório')
+  })
+  test('Nao deve inserir uma transacao sem tipo', async () => {
+    transactionReqTemplate({ type: null }, 'Tipo é um atributo obrigatório')
+  })
+  test('Nao deve inserir uma transacao com tipo invalido', async () => {
+    transactionReqTemplate({ type: 'U' }, 'Tipo invalido')
+  })
+})
+
+
+test("Deve retornar uma transacao por ID", async () => {
   return app.db('transactions').insert({ description: 'T ID', date: new Date(), ammount: 100, type: 'I', acc_id: accUser.id }, ['id'])
     .then(transac => request(app).get(`${MAIN_ROUTE}/${transac[0].id}`)
       .set('authorization', `bearer ${user.token}`)
@@ -92,7 +133,7 @@ test("Deve retornar uma transacao por ID", () => {
       }))
 })
 
-test('Deve alterar uma transaction com sucesso', () => {
+test('Deve alterar uma transaction com sucesso', async () => {
   return app.db('transactions').insert({ description: 'New T', date: new Date(), ammount: 100, type: 'I', acc_id: accUser.id }, ['id'])
     .then(transac => request(app).put(`${MAIN_ROUTE}/${transac[0].id}`)
       .send({ description: 'Updated T' })
@@ -104,7 +145,7 @@ test('Deve alterar uma transaction com sucesso', () => {
     )
 })
 
-test('Deve remover uma transacao', () => {
+test('Deve remover uma transacao', async () => {
   return app.db('transactions').insert({ description: 'New T to remove', date: new Date(), ammount: 150, type: 'I', acc_id: accUser.id }, ['id'])
     .then(transac => request(app).delete(`${MAIN_ROUTE}/${transac[0].id}`)
       .set('authorization', `bearer ${user.token}`)
@@ -113,7 +154,7 @@ test('Deve remover uma transacao', () => {
       })
     )
 })
-test('Nao deve alterar uma transacao de outro usuario', () => {
+test('Nao deve alterar uma transacao de outro usuario', async () => {
   return app.db('transactions').insert({ description: 'New Transactions', date: new Date(), ammount: 150, type: 'I', acc_id: accUser2.id }, ['id'])
     .then(transac => request(app).delete(`${MAIN_ROUTE}/${transac[0].id}`)
       .set('authorization', `bearer ${user.token}`)

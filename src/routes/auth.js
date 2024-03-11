@@ -1,7 +1,7 @@
 const express = require('express')
 const jwt = require('jwt-simple')
 const bcrypt = require('bcrypt-nodejs')
-const secret = 'Segredo criptografado'
+const secret = 'Secret super secreto'
 const ValidationError = require('../errors/ValidationError')
 
 module.exports = (app) => {

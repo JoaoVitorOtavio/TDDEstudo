@@ -1,3 +1,5 @@
+const ValidationError = require('../errors/ValidationError')
+
 module.exports = (app) => {
   const find = (filter = {}) => {
     return app.db('transfers')
@@ -6,6 +8,24 @@ module.exports = (app) => {
   }
 
   const save = async (transfer) => {
+    const requiredFields = [
+      { field: 'description', message: 'Descricao é um atributo obrigatório' },
+      { field: 'ammount', message: 'Ammount é um atributo obrigatório' },
+      { field: 'date', message: 'Data é um atributo obrigatório' },
+      { field: 'acc_ori_id', message: 'Conta de origem é um atributo obrigatório' },
+      { field: 'acc_dest_id', message: 'Conta de destino é um atributo obrigatório' },
+    ];
+
+    if (transfer.acc_ori_id === transfer.acc_dest_id) {
+      throw new ValidationError('Conta de origem e destinos nao podem ser a mesma')
+    }
+
+    for (const { field, message } of requiredFields) {
+      if (!transfer[field]) {
+        throw new ValidationError(message);
+      }
+    }
+
     const result = await app.db('transfers')
       .insert(transfer, '*')
     const transferId = result[0].id;

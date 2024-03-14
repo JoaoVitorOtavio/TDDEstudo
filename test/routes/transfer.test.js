@@ -80,3 +80,42 @@ describe('Ao salvar uma transferencia valida...', () => {
     expect(outcome.transfer_id).toBe(transferId)
   })
 })
+
+describe('Ao tenta salvar uma transferencia invalida...', () => {
+  let validTransfer = {
+    description: 'Regular Transfer',
+    user_id: 10000,
+    acc_ori_id: 10000,
+    acc_dest_id: 10001,
+    ammount: 100,
+    date: new Date()
+  }
+
+  const transferReqTemplate = async (newData, errorMessage) => {
+    return request(app).post(MAIN_ROUTE)
+      .set('authorization', `bearer ${TOKEN}`)
+      .send({ ...validTransfer, ...newData })
+      .then(async (res) => {
+        expect(res.status).toBe(400)
+        expect(res.body.error).toBe(errorMessage)
+      })
+  }
+  test('Nao deve inserir sem descricao', () => {
+    transferReqTemplate({ description: null }, 'Descricao é um atributo obrigatório')
+  })
+  test('Nao deve inserir sem valor', () => {
+    transferReqTemplate({ ammount: null }, 'Ammount é um atributo obrigatório')
+  })
+  test('Nao deve inserir sem data', () => {
+    transferReqTemplate({ date: null }, 'Data é um atributo obrigatório')
+  })
+  test('Nao deve inserir sem conta de origem', () => {
+    transferReqTemplate({ acc_ori_id: null }, 'Conta de origem é um atributo obrigatório')
+  })
+  test('Nao deve inserir sem conta de destino', () => {
+    transferReqTemplate({ acc_dest_id: null }, 'Conta de destino é um atributo obrigatório')
+  })
+  test('Nao deve inserir se as conta de origem e destino forem as mesmas', () => {
+    transferReqTemplate({ acc_ori_id: 1, acc_dest_id: 1 }, 'Conta de origem e destinos nao podem ser a mesma')
+  })
+})

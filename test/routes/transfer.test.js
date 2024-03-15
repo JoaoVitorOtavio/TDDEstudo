@@ -119,3 +119,13 @@ describe('Ao tenta salvar uma transferencia invalida...', () => {
     transferReqTemplate({ acc_ori_id: 1, acc_dest_id: 1 }, 'Conta de origem e destinos nao podem ser a mesma')
   })
 })
+
+test('Deve retornar uma transferencia por Id', () => {
+  // transfer already on the seed
+  return request(app).get(`${MAIN_ROUTE}/10000`)
+    .set('authorization', `bearer ${TOKEN}`)
+    .then((res) => {
+      expect(res.status).toBe(200)
+      expect(res.body.description).toBe('Transfer #1')
+    })
+})

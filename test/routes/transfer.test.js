@@ -129,3 +129,49 @@ test('Deve retornar uma transferencia por Id', () => {
       expect(res.body.description).toBe('Transfer #1')
     })
 })
+
+describe('Ao alterar uma transferencia valida...', () => {
+  let transferId;
+  let income;
+  let outcome;
+
+  test('deve retornar o status 200 e os dados da transferencia', () => {
+    // transfer already created by seed
+    return request(app).put(`${MAIN_ROUTE}/10000`)
+      .set('authorization', `bearer ${TOKEN}`)
+      .send({ description: 'Transfer Updated', user_id: 10000, acc_ori_id: 10000, acc_dest_id: 10001, ammount: 500, date: new Date() })
+      .then(async (res) => {
+        expect(res.status).toBe(200)
+        expect(res.body.description).toBe('Transfer Updated')
+        expect(res.body.ammount).toBe('500.00')
+        transferId = res.body.id;
+      })
+  })
+
+  test('As transacoes aquivalentes devem ter sido geradas', async () => {
+    const transactions = await app.db('transactions').where({ transfer_id: transferId }).orderBy('ammount')
+    expect(transactions).toHaveLength(2)
+
+    outcome = transactions[0];
+    income = transactions[1];
+  });
+
+  test('A transacao de saida deve ser negativa', () => {
+    expect(outcome.description).toBe('Transfer to acc #10001')
+    expect(outcome.ammount).toBe('-500.00')
+    expect(outcome.acc_id).toBe(10000)
+    expect(outcome.type).toBe('O')
+  })
+
+  test('A transacao de emtrada deve ser positiva', () => {
+    expect(income.description).toBe('Transfer from acc #10000')
+    expect(income.ammount).toBe('500.00')
+    expect(income.acc_id).toBe(10001)
+    expect(income.type).toBe('I')
+  })
+
+  test('Ambas devem referenciar a transferencia que as originou', () => {
+    expect(income.transfer_id).toBe(transferId)
+    expect(outcome.transfer_id).toBe(transferId)
+  })
+})

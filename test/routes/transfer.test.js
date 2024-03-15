@@ -81,7 +81,7 @@ describe('Ao salvar uma transferencia valida...', () => {
   })
 })
 
-describe('Ao tenta salvar uma transferencia invalida...', () => {
+describe('Ao tentar salvar uma transferencia invalida...', () => {
   let validTransfer = {
     description: 'Regular Transfer',
     user_id: 10000,
@@ -173,5 +173,44 @@ describe('Ao alterar uma transferencia valida...', () => {
   test('Ambas devem referenciar a transferencia que as originou', () => {
     expect(income.transfer_id).toBe(transferId)
     expect(outcome.transfer_id).toBe(transferId)
+  })
+})
+
+describe('Ao tentar alterar uma transferencia invalida...', () => {
+  let validTransfer = {
+    description: 'Regular Transfer',
+    user_id: 10000,
+    acc_ori_id: 10000,
+    acc_dest_id: 10001,
+    ammount: 100,
+    date: new Date()
+  }
+
+  const updateTransferReqTemplate = async (newData, errorMessage) => {
+    return request(app).put(`${MAIN_ROUTE}/10000`)
+      .set('authorization', `bearer ${TOKEN}`)
+      .send({ ...validTransfer, ...newData })
+      .then(async (res) => {
+        expect(res.status).toBe(400)
+        expect(res.body.error).toBe(errorMessage)
+      })
+  }
+  test('Nao deve inserir sem descricao', () => {
+    updateTransferReqTemplate({ description: null }, 'Descricao é um atributo obrigatório')
+  })
+  test('Nao deve inserir sem valor', () => {
+    updateTransferReqTemplate({ ammount: null }, 'Ammount é um atributo obrigatório')
+  })
+  test('Nao deve inserir sem data', () => {
+    updateTransferReqTemplate({ date: null }, 'Data é um atributo obrigatório')
+  })
+  test('Nao deve inserir sem conta de origem', () => {
+    updateTransferReqTemplate({ acc_ori_id: null }, 'Conta de origem é um atributo obrigatório')
+  })
+  test('Nao deve inserir sem conta de destino', () => {
+    updateTransferReqTemplate({ acc_dest_id: null }, 'Conta de destino é um atributo obrigatório')
+  })
+  test('Nao deve inserir se as conta de origem e destino forem as mesmas', () => {
+    updateTransferReqTemplate({ acc_ori_id: 1, acc_dest_id: 1 }, 'Conta de origem e destinos nao podem ser a mesma')
   })
 })

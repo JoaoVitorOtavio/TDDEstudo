@@ -7,6 +7,12 @@ module.exports = (app) => {
       .select();
   }
 
+  const findOne = (filter = {}) => {
+    return app.db('transfers')
+      .where(filter)
+      .first();
+  }
+
   const save = async (transfer) => {
     const requiredFields = [
       { field: 'description', message: 'Descricao é um atributo obrigatório' },
@@ -54,5 +60,5 @@ module.exports = (app) => {
     return result;
   }
 
-  return { find, save }
+  return { find, save, findOne }
 }

@@ -1,19 +1,7 @@
 const ValidationError = require('../errors/ValidationError')
 
 module.exports = (app) => {
-  const find = (filter = {}) => {
-    return app.db('transfers')
-      .where(filter)
-      .select();
-  }
-
-  const findOne = (filter = {}) => {
-    return app.db('transfers')
-      .where(filter)
-      .first();
-  }
-
-  const save = async (transfer) => {
+  const validate = async (transfer) => {
     const requiredFields = [
       { field: 'description', message: 'Descricao é um atributo obrigatório' },
       { field: 'ammount', message: 'Ammount é um atributo obrigatório' },
@@ -31,6 +19,22 @@ module.exports = (app) => {
         throw new ValidationError(message);
       }
     }
+  }
+
+  const find = (filter = {}) => {
+    return app.db('transfers')
+      .where(filter)
+      .select();
+  }
+
+  const findOne = (filter = {}) => {
+    return app.db('transfers')
+      .where(filter)
+      .first();
+  }
+
+  const save = async (transfer) => {
+    await validate(transfer)
 
     const result = await app.db('transfers')
       .insert(transfer, '*')
@@ -61,6 +65,8 @@ module.exports = (app) => {
   }
 
   const update = async (id, transfer) => {
+    await validate(transfer);
+
     const result = await app.db('transfers')
       .where({ id })
       .update(transfer, '*');

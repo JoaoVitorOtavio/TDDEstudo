@@ -214,3 +214,25 @@ describe('Ao tentar alterar uma transferencia invalida...', () => {
     updateTransferReqTemplate({ acc_ori_id: 1, acc_dest_id: 1 }, 'Conta de origem e destinos nao podem ser a mesma')
   })
 })
+
+describe('Ao remover uma transferencia', () => {
+  test('Deve retornar o status 204', () => {
+    return request(app).delete(`${MAIN_ROUTE}/10000`)
+      .set('authorization', `bearer ${TOKEN}`)
+      .then((res) => {
+        expect(res.status).toBe(204)
+      })
+  })
+  test('O registro deve ter sido removido do banco', () => {
+    return app.db('transfers').where({ id: 10000 })
+      .then((result) => {
+        expect(result).toHaveLength(0)
+      })
+  })
+  test('As transacoes associadas devem ter sido removidas', () => {
+    return app.db('transactions').where({ transfer_id: 10000 })
+      .then((result) => {
+        expect(result).toHaveLength(0)
+      })
+  })
+})

@@ -21,7 +21,9 @@ module.exports = (app) => {
 
   router.post('/', (req, res, next) => {
     app.services.transaction.save(req.body)
-      .then(result => res.status(201).json(result[0]))
+      .then(result => {
+        return res.status(201).json(result[0])
+      })
       .catch(err => next(err))
   })
 

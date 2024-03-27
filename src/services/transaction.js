@@ -40,8 +40,10 @@ module.exports = (app) => {
       newTransaction.ammount *= -1;
     }
 
+
     return app.db('transactions')
-      .insert(newTransaction, '*')
+      .insert(newTransaction)
+      .returning('*')
   }
 
   const update = (id, transaction) => {
